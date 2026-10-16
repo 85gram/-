@@ -193,7 +193,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Leader Commission (기본값 5로 설정) -->
+                        <!-- Leader Commission -->
                         <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
                             <label class="block text-xs font-semibold text-slate-400 mb-1">판매자 / 기타 수수료 (%)</label>
                             <div class="flex items-center gap-2">
@@ -412,7 +412,7 @@
                 { id: 1, name: '아이템을 추가하세요', price: 0, qty: 1, applyFee: true }
             ],
             baseMeso: 0,
-            leaderFeePercent: 5, // 기본 수수료 5% 설정
+            leaderFeePercent: 5,
             extraExpense: 0
         };
 
@@ -761,7 +761,7 @@
                                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${member.job}</span>
                             </div>
                             <span class="text-[10px] ${member.isPaid ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">
-                                ${member.isPaid ? '✓ 발송 완료' : '미지급'}
+                                ${member.isPaid ? '✓ 지급 완료' : '미지급'}
                             </span>
                         </div>
                     </div>
@@ -798,7 +798,7 @@
             const grossIncome = grossItemTotal + state.baseMeso;
             const leaderFeeAmount = Math.floor(grossIncome * (state.leaderFeePercent / 100));
             const totalDeductions = leaderFeeAmount + state.extraExpense;
-            const netDistribution = Math.max(0, netItemTotal + baseMeso - totalDeductions); // fixed state reference check below
+            const netDistribution = Math.max(0, netItemTotal + state.baseMeso - totalDeductions);
             const partySize = state.partyMembers.length || 1;
             const perPersonShare = Math.floor(netDistribution / partySize);
             
@@ -842,7 +842,8 @@
 
             text += `📋 파티원별 택배 발송 안내\n`;
             state.partyMembers.forEach(m => {
-                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '발송완료 ✓' : '미지급'}]\n`;
+                // 요약글 내 발송완료 -> 지급완료로 변경
+                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '지급완료 ✓' : '미지급'}]\n`;
             });
 
             text += `=================================`;
@@ -863,7 +864,6 @@
             closeDiscordModal();
         }
 
-        // 초기화 시 판매자/기타 수수료를 5%로 설정
         function resetAllData() {
             if (confirm('모든 입력 데이터를 초기화하시겠습니까?')) {
                 state = {
