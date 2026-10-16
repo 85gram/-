@@ -480,7 +480,7 @@
                     </select>
 
                     <button onclick="togglePaidStatus(${member.id})" class="px-2.5 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap ${member.isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
-                        ${member.isPaid ? '지급완료 ✓' : '미지급'}
+                        ${member.isPaid ? '지급 완료✓' : '미지급'}
                     </button>
 
                     <button onclick="removePartyMember(${member.id})" class="text-slate-500 hover:text-rose-400 p-1 transition">
@@ -761,7 +761,7 @@
                                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${member.job}</span>
                             </div>
                             <span class="text-[10px] ${member.isPaid ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">
-                                ${member.isPaid ? '✓ 지급 완료' : '미지급'}
+                                ${member.isPaid ? '발송 완료 ✓' : '미지급'}
                             </span>
                         </div>
                     </div>
