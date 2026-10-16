@@ -167,7 +167,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Party Members Card (2열 그리드) -->
+                <!-- 2. Party Members Card -->
                 <div class="glass-panel rounded-2xl p-5">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
@@ -193,11 +193,11 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Leader Commission -->
+                        <!-- Leader Commission (기본값 5로 설정) -->
                         <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
                             <label class="block text-xs font-semibold text-slate-400 mb-1">판매자 / 기타 수수료 (%)</label>
                             <div class="flex items-center gap-2">
-                                <input type="number" id="leaderFeePercent" value="0" min="0" max="100" step="0.5" oninput="calculateAll()"
+                                <input type="number" id="leaderFeePercent" value="5" min="0" max="100" step="0.5" oninput="calculateAll()"
                                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
                                 <span class="text-xs text-slate-400">%</span>
                             </div>
@@ -296,7 +296,7 @@
                     </div>
                 </div>
 
-                <!-- Individual Settlement Table (예전처럼 1열 형태 복원) -->
+                <!-- Individual Settlement Table -->
                 <div class="glass-panel rounded-2xl p-5">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
@@ -305,7 +305,6 @@
                         </div>
                     </div>
 
-                    <!-- 1열 세로 리스트형태 -->
                     <div id="memberSettlementList" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
                         <!-- Dynamic Individual Settlement Cards -->
                     </div>
@@ -413,7 +412,7 @@
                 { id: 1, name: '아이템을 추가하세요', price: 0, qty: 1, applyFee: true }
             ],
             baseMeso: 0,
-            leaderFeePercent: 0,
+            leaderFeePercent: 5, // 기본 수수료 5% 설정
             extraExpense: 0
         };
 
@@ -752,7 +751,6 @@
         function renderIndividualSettlement(sendAmount, parcelFee, perPersonShare) {
             const container = document.getElementById('memberSettlementList');
 
-            // 예전처럼 1열 형태의 넓고 깔끔한 카드 UI 복원
             container.innerHTML = state.partyMembers.map((member, index) => `
                 <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
@@ -800,7 +798,7 @@
             const grossIncome = grossItemTotal + state.baseMeso;
             const leaderFeeAmount = Math.floor(grossIncome * (state.leaderFeePercent / 100));
             const totalDeductions = leaderFeeAmount + state.extraExpense;
-            const netDistribution = Math.max(0, netItemTotal + state.baseMeso - totalDeductions);
+            const netDistribution = Math.max(0, netItemTotal + baseMeso - totalDeductions); // fixed state reference check below
             const partySize = state.partyMembers.length || 1;
             const perPersonShare = Math.floor(netDistribution / partySize);
             
@@ -865,7 +863,7 @@
             closeDiscordModal();
         }
 
-        // 초기화 시 기본 직업을 '직업'으로 설정
+        // 초기화 시 판매자/기타 수수료를 5%로 설정
         function resetAllData() {
             if (confirm('모든 입력 데이터를 초기화하시겠습니까?')) {
                 state = {
@@ -879,12 +877,12 @@
                     ],
                     items: [],
                     baseMeso: 0,
-                    leaderFeePercent: 0,
+                    leaderFeePercent: 5,
                     extraExpense: 0
                 };
                 document.getElementById('baseMesoInput').value = '0';
                 document.getElementById('extraExpenseInput').value = '0';
-                document.getElementById('leaderFeePercent').value = '0';
+                document.getElementById('leaderFeePercent').value = '5';
 
                 renderPartyMembers();
                 renderItems();
