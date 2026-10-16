@@ -89,6 +89,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
+                <!-- 이전 기록 불러오기 (백업본 포함 복구) -->
+                <button onclick="loadSavedDataManually()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5" title="실수로 초기화했거나 이전 기록을 불러옵니다">
+                    <i class="fa-solid fa-clock-rotate-left"></i> 이전 기록
+                </button>
                 <button onclick="resetAllData()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-rotate-right"></i> 초기화
                 </button>
@@ -117,12 +121,12 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:w-1/3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-400 mb-1">레이드 명칭</label>
-                        <input type="text" id="raidTitle" value="자쿰 1분대 레이드" oninput="calculateAll()"
+                        <input type="text" id="raidTitle" value="자쿰 1분대 레이드" oninput="saveStateAndCalculate()"
                             class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-400 mb-1">일시</label>
-                        <input type="text" id="raidDate" class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                        <input type="text" id="raidDate" oninput="saveStateAndCalculate()" class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
             </div>
@@ -197,7 +201,7 @@
                         <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
                             <label class="block text-xs font-semibold text-slate-400 mb-1">판매자 / 기타 수수료 (%)</label>
                             <div class="flex items-center gap-2">
-                                <input type="number" id="leaderFeePercent" value="5" min="0" max="100" step="0.5" oninput="calculateAll()"
+                                <input type="number" id="leaderFeePercent" value="5" min="0" max="100" step="0.5" oninput="saveStateAndCalculate()"
                                     class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
                                 <span class="text-xs text-slate-400">%</span>
                             </div>
@@ -416,11 +420,75 @@
             extraExpense: 0
         };
 
+        // 자동 저장 데이터 불러오기 함수
+        function loadSavedState() {
+            const saved = localStorage.getItem('maple_calc_state_v2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = parsed;
+                    if (state.raidTitle) document.getElementById('raidTitle').value = state.raidTitle;
+                    if (state.raidDate) document.getElementById('raidDate').value = state.raidDate;
+                    if (state.baseMeso !== undefined) document.getElementById('baseMesoInput').value = formatNumber(state.baseMeso);
+                    if (state.extraExpense !== undefined) document.getElementById('extraExpenseInput').value = formatNumber(state.extraExpense);
+                    if (state.leaderFeePercent !== undefined) document.getElementById('leaderFeePercent').value = state.leaderFeePercent;
+                    return true;
+                } catch (e) {
+                    console.error('저장된 데이터를 불러오는 중 오류 발생:', e);
+                }
+            }
+            return false;
+        }
+
+        // '기록 불러오기' 버튼을 눌렀을 때 실행되는 수동 로드 함수 (백업본 포함)
+        function loadSavedDataManually() {
+            // 먼저 최신 저장본을 불러오고, 없으면 초기화 직전 백업본을 시도
+            let saved = localStorage.getItem('maple_calc_state_v2');
+            if (!saved) {
+                saved = localStorage.getItem('maple_calc_backup');
+            }
+
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = parsed;
+                    if (state.raidTitle) document.getElementById('raidTitle').value = state.raidTitle;
+                    if (state.raidDate) document.getElementById('raidDate').value = state.raidDate;
+                    if (state.baseMeso !== undefined) document.getElementById('baseMesoInput').value = formatNumber(state.baseMeso);
+                    if (state.extraExpense !== undefined) document.getElementById('extraExpenseInput').value = formatNumber(state.extraExpense);
+                    if (state.leaderFeePercent !== undefined) document.getElementById('leaderFeePercent').value = state.leaderFeePercent;
+
+                    renderPartyMembers();
+                    renderItems();
+                    calculateAll();
+                    showToast('이전 정산 기록을 성공적으로 불러왔습니다!');
+                    return;
+                } catch (e) {
+                    console.error('기록 불러오기 오류:', e);
+                }
+            }
+            showToast('불러올 이전 기록이 없습니다.');
+        }
+
+        // 상태 저장 및 계산 실행 함수
+        function saveStateAndCalculate() {
+            state.raidTitle = document.getElementById('raidTitle').value;
+            state.raidDate = document.getElementById('raidDate').value;
+            state.baseMeso = parseFormattedNumber(document.getElementById('baseMesoInput').value);
+            state.extraExpense = parseFormattedNumber(document.getElementById('extraExpenseInput').value);
+            state.leaderFeePercent = parseFloat(document.getElementById('leaderFeePercent').value) || 0;
+
+            localStorage.setItem('maple_calc_state_v2', JSON.stringify(state));
+            calculateAll();
+        }
+
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
-            const today = new Date();
-            document.getElementById('raidDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
-
+            const loaded = loadSavedState();
+            if (!loaded) {
+                const today = new Date();
+                document.getElementById('raidDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+            }
             renderBossPresets();
             renderPartyMembers();
             renderItems();
@@ -455,7 +523,7 @@
             }));
 
             renderItems();
-            calculateAll();
+            saveStateAndCalculate();
             showToast(`${boss.name} 프리셋 아이템을 로드했습니다.`);
         }
 
@@ -480,7 +548,7 @@
                     </select>
 
                     <button onclick="togglePaidStatus(${member.id})" class="px-2.5 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap ${member.isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
-                        ${member.isPaid ? '지급 완료' : '미지급'}
+                        ${member.isPaid ? '지급완료 ✓' : '미지급'}
                     </button>
 
                     <button onclick="removePartyMember(${member.id})" class="text-slate-500 hover:text-rose-400 p-1 transition">
@@ -499,7 +567,7 @@
                 isPaid: false
             });
             renderPartyMembers();
-            calculateAll();
+            saveStateAndCalculate();
         }
 
         function removePartyMember(id) {
@@ -509,14 +577,14 @@
             }
             state.partyMembers = state.partyMembers.filter(m => m.id !== id);
             renderPartyMembers();
-            calculateAll();
+            saveStateAndCalculate();
         }
 
         function updateMember(id, field, value) {
             const member = state.partyMembers.find(m => m.id === id);
             if (member) {
                 member[field] = value;
-                calculateAll();
+                saveStateAndCalculate();
             }
         }
 
@@ -525,7 +593,7 @@
             if (member) {
                 member.isPaid = !member.isPaid;
                 renderPartyMembers();
-                calculateAll();
+                saveStateAndCalculate();
             }
         }
 
@@ -604,19 +672,20 @@
                 applyFee: true
             });
             renderItems();
-            calculateAll();
+            saveStateAndCalculate();
         }
 
         function removeItemRow(id) {
             state.items = state.items.filter(i => i.id !== id);
             renderItems();
-            calculateAll();
+            saveStateAndCalculate();
         }
 
         function updateItemName(id, value) {
             const item = state.items.find(i => i.id === id);
             if (item) {
                 item.name = value;
+                saveStateAndCalculate();
             }
         }
 
@@ -649,7 +718,7 @@
             if (item) {
                 item.price = numericValue;
                 updateSingleRowDisplay(id);
-                calculateAll();
+                saveStateAndCalculate();
             }
         }
 
@@ -659,7 +728,7 @@
             if (item) {
                 item.qty = qty;
                 updateSingleRowDisplay(id);
-                calculateAll();
+                saveStateAndCalculate();
             }
         }
 
@@ -668,7 +737,7 @@
             if (item) {
                 item.applyFee = isChecked;
                 updateSingleRowDisplay(id);
-                calculateAll();
+                saveStateAndCalculate();
             }
         }
 
@@ -761,7 +830,7 @@
                                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${member.job}</span>
                             </div>
                             <span class="text-[10px] ${member.isPaid ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">
-                                ${member.isPaid ? '발송 완료 ✓' : '미지급'}
+                                ${member.isPaid ? '✓ 지급 완료' : '미지급'}
                             </span>
                         </div>
                     </div>
@@ -781,7 +850,7 @@
 
         // Export Discord Summary Modal
         function exportSummaryModal() {
-            const raidTitle = document.getElementById('raidTitle').value || '메이플랜드 보스 레이드';
+            const raidTitle = document.getElementById('raidTitle').value || '자쿰 1분대 레이드';
             const raidDate = document.getElementById('raidDate').value;
 
             let grossItemTotal = 0;
@@ -842,8 +911,7 @@
 
             text += `📋 파티원별 택배 발송 안내\n`;
             state.partyMembers.forEach(m => {
-                // 요약글 내 발송완료 -> 지급완료로 변경
-                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '발송 완료' : '미지급'}]\n`;
+                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '지급완료 ✓' : '미지급'}]\n`;
             });
 
             text += `=================================`;
@@ -864,8 +932,18 @@
             closeDiscordModal();
         }
 
+        // 초기화 시 기존 데이터를 백업(안전장치)하고 초기화
         function resetAllData() {
-            if (confirm('모든 입력 데이터를 초기화하시겠습니까?')) {
+            if (confirm('모든 입력 데이터를 초기화하시겠습니까?\n(실수로 누르셨다면 상단의 "이전 기록"을 눌러 복구할 수 있습니다.)')) {
+                // 현재 상태를 백업용으로 먼저 저장
+                const currentSaved = localStorage.getItem('maple_calc_state_v2');
+                if (currentSaved) {
+                    localStorage.setItem('maple_calc_backup', currentSaved);
+                }
+
+                // 본 저장 데이터는 삭제
+                localStorage.removeItem('maple_calc_state_v2');
+
                 state = {
                     partyMembers: [
                         { id: 1, name: '20준', job: '직업', isPaid: false },
@@ -883,11 +961,14 @@
                 document.getElementById('baseMesoInput').value = '0';
                 document.getElementById('extraExpenseInput').value = '0';
                 document.getElementById('leaderFeePercent').value = '5';
+                
+                const today = new Date();
+                document.getElementById('raidDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
 
                 renderPartyMembers();
                 renderItems();
                 calculateAll();
-                showToast('모든 정보가 초기화되었습니다.');
+                showToast('초기화되었습니다. (실수하셨다면 "기록 불러오기"를 누르세요)');
             }
         }
 
@@ -903,7 +984,7 @@
 
         function formatAndCalculate(input) {
             formatInputInPlace(input);
-            calculateAll();
+            saveStateAndCalculate();
         }
 
         function toKoreanMeso(num) {
