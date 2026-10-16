@@ -843,7 +843,7 @@
             text += `📋 파티원별 택배 발송 안내\n`;
             state.partyMembers.forEach(m => {
                 // 요약글 내 발송완료 -> 지급완료로 변경
-                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '지급 완료 ✓' : '미지급'}]\n`;
+                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '지급 완료' : '미지급'}]\n`;
             });
 
             text += `=================================`;
