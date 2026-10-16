@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>츠키길드 보스 분배 계산기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        maple: {
+                            gold: '#FFC837',
+                            orange: '#FF8008',
+                            dark: '#0F172A',
+                            card: '#1E293B',
+                            accent: '#F59E0B',
+                            subtle: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons & FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #0B0F19;
+            color: #F1F5F9;
+            background-image: 
+                radial-gradient(at 20% 20%, rgba(255, 128, 8, 0.05) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
+        }
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-panel-gold {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-orange-500/20">
+                    🌙
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-100 flex items-center gap-2">
+                        츠키길드 보스 분배 계산기
+                        <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">PETG 제작</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">택배 수수료(5,000 + 5%) 자동 공제 정산 시트</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="resetAllData()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> 초기화
+                </button>
+                <button onclick="exportSummaryModal()" class="px-3 py-1.5 text-xs rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 transition font-medium flex items-center gap-1.5">
+                    <i class="fa-brands fa-discord"></i> 디스코드 요약 복사
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+        <!-- Boss Selection Bar & Basic Settings -->
+        <section class="glass-panel rounded-2xl p-5 border border-slate-800">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <!-- Boss Preset Buttons -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">보스 선택 (드롭 아이템 프리셋)</label>
+                    <div class="flex flex-wrap gap-2" id="bossPresetContainer">
+                        <!-- Dynamic Boss Buttons -->
+                    </div>
+                </div>
+
+                <!-- Boss Info Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:w-1/3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">레이드 명칭</label>
+                        <input type="text" id="raidTitle" value="자쿰 1분대 레이드" oninput="calculateAll()"
+                            class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">일시</label>
+                        <input type="text" id="raidDate" class="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT COLUMN: Items Table & Party List (7 Cols) -->
+            <div class="lg:col-span-7 space-y-6">
+
+                <!-- 1. Loot & Auction Items Table -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-gem text-amber-400"></i>
+                            <h2 class="font-bold text-slate-100">획득 아이템 목록 & 수수료 계산</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addItemRow()" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> 아이템 추가
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Base Meso Drop Input -->
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 mb-4 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            <span class="text-amber-400 text-sm">💰</span>
+                            <span class="text-xs font-semibold text-slate-300">기본 순메소 드롭</span>
+                        </div>
+                        <div class="flex items-center gap-2 w-1/2 sm:w-1/3">
+                            <input type="text" id="baseMesoInput" value="0" oninput="formatAndCalculate(this)"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-right font-mono text-sm text-amber-300 focus:outline-none focus:border-amber-500">
+                            <span class="text-xs text-slate-400">메소</span>
+                        </div>
+                    </div>
+
+                    <!-- Items List Container -->
+                    <div id="itemList" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                        <!-- Dynamic Item Cards -->
+                    </div>
+                </div>
+
+                <!-- 2. Party Members Card -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-users text-amber-400"></i>
+                            <h2 class="font-bold text-slate-100">파티원 명단 (<span id="memberCount">0</span>명)</h2>
+                        </div>
+                        <button onclick="addPartyMember()" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> 파티원 추가
+                        </button>
+                    </div>
+
+                    <!-- Member Input List -->
+                    <div id="partyMemberList" class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                        <!-- Dynamic Member Rows -->
+                    </div>
+                </div>
+
+                <!-- 3. Expenses & Deductions -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-calculator text-amber-400"></i>
+                        <h2 class="font-bold text-slate-100">추가 공제 및 수수료 설정</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Leader Commission -->
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">판매자 / 기타 수수료 (%)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="leaderFeePercent" value="0" min="0" max="100" step="0.5" oninput="calculateAll()"
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                                <span class="text-xs text-slate-400">%</span>
+                            </div>
+                        </div>
+
+                        <!-- Extra Deductions -->
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">기타 공제금 (지원금/포션/도핑비 등)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="extraExpenseInput" value="0" oninput="formatAndCalculate(this)"
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-right font-mono text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                                <span class="text-xs text-slate-400">메소</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Real-time Calculation Summary & Settlement (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- Overall Calculation Summary Glass Card -->
+                <div class="glass-panel-gold rounded-2xl p-6 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 text-slate-800/20 text-9xl pointer-events-none font-black">
+                        🍁
+                    </div>
+
+                    <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> 정산 총괄 요약
+                    </h2>
+
+                    <div class="space-y-3 font-mono">
+                        <div class="flex justify-between items-center text-sm text-slate-300">
+                            <span>총 아이템 판매액 (수수료 전)</span>
+                            <span id="summaryGrossItemTotal" class="font-bold text-slate-100">0 메소</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-rose-400 pl-3 border-l-2 border-rose-500/50">
+                            <span>└ 아이템 수수료 차감액 (5%)</span>
+                            <span id="summaryTotalItemFee">-0 메소</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-emerald-400 pl-3 border-l-2 border-emerald-500/50">
+                            <span>└ 수수료 차감 후 판매액</span>
+                            <span id="summaryNetItemTotal" class="font-bold">0 메소</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-400 pl-3 border-l-2 border-slate-700">
+                            <span>└ 순메소 드롭</span>
+                            <span id="summaryBaseMeso">0 메소</span>
+                        </div>
+
+                        <hr class="border-slate-800 my-2">
+
+                        <div class="flex justify-between items-center text-xs text-rose-400">
+                            <span>판매자/기타 공제금 합계</span>
+                            <span id="summaryExtraExpense">-0 메소</span>
+                        </div>
+
+                        <hr class="border-slate-800 my-2">
+
+                        <div class="bg-slate-950/80 p-4 rounded-xl border border-amber-500/30">
+                            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+                                <span>최종 순 분배 대상 총액</span>
+                            </div>
+                            <div class="text-right text-2xl font-black text-amber-400" id="summaryNetDistribution">
+                                0 메소
+                            </div>
+                            <div class="text-right text-[11px] text-amber-300/60 mt-0.5" id="summaryNetKorean">
+                                (0메소)
+                            </div>
+                        </div>
+
+                        <!-- Per Person Split highlight -->
+                        <div class="bg-amber-500/10 p-4 rounded-xl border border-amber-500/40 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-xs font-bold text-amber-300 block">1인당 할당 예산(분배금)</span>
+                                    <span class="text-[10px] text-slate-400">(N = <span id="summaryPartySize">0</span>명)</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-base font-extrabold text-amber-300 block" id="summaryPerPersonShare">0 메소</span>
+                                </div>
+                            </div>
+                            <div class="pt-2 border-t border-amber-500/20 flex justify-between items-center">
+                                <div>
+                                    <span class="text-xs font-bold text-emerald-400 block">택배 입력 금액</span>
+                                    <span class="text-[10px] text-slate-400">(택배 기본요금 - 5,000) ÷ 1.05</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-lg font-black text-emerald-300 block" id="summarySendAmount">0 메소</span>
+                                </div>
+                            </div>
+                            <div class="text-[11px] text-slate-400 text-right pt-1 border-t border-slate-800/60">
+                                └ 예상 택배 수수료: <span id="summaryParcelFee" class="text-rose-400 font-semibold">0 메소</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Settlement Table -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-amber-400"></i>
+                            <h2 class="font-bold text-slate-100">파티원별 택배 발송 안내</h2>
+                        </div>
+                    </div>
+
+                    <div id="memberSettlementList" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                        <!-- Dynamic Individual Settlement Cards -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Discord Modal -->
+    <div id="discordModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-xl rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closeDiscordModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-100">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
+                    <i class="fa-brands fa-discord text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-100">디스코드 / 오픈톡 전송용 요약문</h3>
+                    <p class="text-xs text-slate-400">채널에 복사해서 바로 게시할 수 있습니다.</p>
+                </div>
+            </div>
+
+            <textarea id="discordTextarea" readonly class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none resize-none mb-4 leading-relaxed"></textarea>
+
+            <div class="flex justify-end gap-2">
+                <button onclick="closeDiscordModal()" class="px-4 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition">닫기</button>
+                <button onclick="copyDiscordSummary()" class="px-4 py-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i> 클립보드 복사
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-slate-100 border border-amber-500/50 px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 z-50 flex items-center gap-2">
+        <span class="text-amber-400">✨</span>
+        <span id="toastMessage" class="text-sm">메시지 내용</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Preset Boss Data
+        const BOSS_PRESETS = [
+            {
+                id: 'zakum',
+                name: '자쿰',
+                icon: '👑',
+                defaultItems: [
+                    { name: '자쿰의 투구', price: 50000, qty: 1, applyFee: true },
+                    { name: '파워 엘릭서', price: 16000, qty: 1, applyFee: true },
+                    { name: '엘릭서', price: 8000, qty: 1, applyFee: true },
+                    { name: '황혼의 이슬', price: 7500, qty: 1, applyFee: true },
+                    { name: '순록의 우유', price: 5500, qty: 1, applyFee: true }
+                ]
+            },
+            {
+                id: 'horntail',
+                name: '혼테일',
+                icon: '🐉',
+                defaultItems: [
+                    { name: '혼테일의 목걸이', price: 0, qty: 1, applyFee: true },
+                ]
+            },
+            {
+                id: 'papulatus',
+                name: '크림슨 우드 파티퀘스트',
+                icon: '📦',
+                defaultItems: [
+                    { name: '혼돈의 주문서', price: 0, qty: 1, applyFee: true },
+                ]
+            },
+            {
+                id: 'pianus',
+                name: '말레이시아',
+                icon: '🐻‍❄️',
+                defaultItems: [
+                    { name: '혼돈의 주문서', price: 0, qty: 1, applyFee: true }
+                ]
+            },
+            {
+                id: 'pinkbean',
+                name: '핑크빈',
+                icon: '🎀',
+                defaultItems: [
+                    { name: '뭐나오나?', price: 0, qty: 1, applyFee: true },
+                ]
+            }
+        ];
+
+        // State Store
+        let state = {
+            partyMembers: [
+                { id: 1, name: '20준', job: '전사', isPaid: false },
+                { id: 2, name: '일훈이', job: '전사', isPaid: false },
+                { id: 3, name: '김다응', job: '궁수', isPaid: false },
+                { id: 4, name: '묘온', job: '마법사', isPaid: false },
+                { id: 5, name: '지예님', job: '궁수', isPaid: false },
+                { id: 6, name: 'PETG', job: '마법사', isPaid: false }
+            ],
+            items: [
+                { id: 1, name: '아이템을 추가하세요', price: 0, qty: 1, applyFee: true }
+            ],
+            baseMeso: 0,
+            leaderFeePercent: 0,
+            extraExpense: 0
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            document.getElementById('raidDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+
+            renderBossPresets();
+            renderPartyMembers();
+            renderItems();
+            calculateAll();
+        });
+
+        // Render Boss Presets Buttons
+        function renderBossPresets() {
+            const container = document.getElementById('bossPresetContainer');
+            container.innerHTML = BOSS_PRESETS.map(boss => `
+                <button onclick="loadBossPreset('${boss.id}')" 
+                    class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-500/50 text-xs text-slate-200 transition flex items-center gap-1.5">
+                    <span>${boss.icon}</span>
+                    <span class="font-medium">${boss.name}</span>
+                </button>
+            `).join('');
+        }
+
+        // Load Preset Items
+        function loadBossPreset(bossId) {
+            const boss = BOSS_PRESETS.find(b => b.id === bossId);
+            if (!boss) return;
+
+            document.getElementById('raidTitle').value = `${boss.name} 분배 정산`;
+            
+            state.items = boss.defaultItems.map((item, index) => ({
+                id: Date.now() + index,
+                name: item.name,
+                price: item.price,
+                qty: item.qty || 1,
+                applyFee: item.applyFee !== undefined ? item.applyFee : true
+            }));
+
+            renderItems();
+            calculateAll();
+            showToast(`${boss.name} 프리셋 아이템을 로드했습니다.`);
+        }
+
+        // Party Member Functions
+        function renderPartyMembers() {
+            const list = document.getElementById('partyMemberList');
+            document.getElementById('memberCount').textContent = state.partyMembers.length;
+
+            list.innerHTML = state.partyMembers.map((member, index) => `
+                <div class="flex items-center gap-2 bg-slate-900/70 p-2 rounded-xl border border-slate-800">
+                    <span class="text-xs font-mono text-slate-500 w-5 text-center">${index + 1}</span>
+                    <input type="text" value="${escapeHtml(member.name)}" onchange="updateMember(${member.id}, 'name', this.value)"
+                        placeholder="닉네임" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                    
+                    <select onchange="updateMember(${member.id}, 'job', this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-amber-500">
+                        <option value="전사" ${member.job === '전사' ? 'selected' : ''}>전사</option>
+                        <option value="마법사" ${member.job === '마법사' ? 'selected' : ''}>마법사</option>
+                        <option value="궁수" ${member.job === '궁수' ? 'selected' : ''}>궁수</option>
+                        <option value="도적" ${member.job === '도적' ? 'selected' : ''}>도적</option>
+                        <option value="해적" ${member.job === '해적' ? 'selected' : ''}>해적</option>
+                    </select>
+
+                    <button onclick="togglePaidStatus(${member.id})" class="px-2.5 py-1 rounded-lg text-xs font-medium transition ${member.isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                        ${member.isPaid ? '지급완료 ✓' : '미지급'}
+                    </button>
+
+                    <button onclick="removePartyMember(${member.id})" class="text-slate-500 hover:text-rose-400 p-1 transition">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addPartyMember() {
+            const newId = Date.now();
+            state.partyMembers.push({
+                id: newId,
+                name: `파티원${state.partyMembers.length + 1}`,
+                job: '전사',
+                isPaid: false
+            });
+            renderPartyMembers();
+            calculateAll();
+        }
+
+        function removePartyMember(id) {
+            if (state.partyMembers.length <= 1) {
+                showToast('최소 1명 이상의 파티원이 필요합니다.');
+                return;
+            }
+            state.partyMembers = state.partyMembers.filter(m => m.id !== id);
+            renderPartyMembers();
+            calculateAll();
+        }
+
+        function updateMember(id, field, value) {
+            const member = state.partyMembers.find(m => m.id === id);
+            if (member) {
+                member[field] = value;
+                calculateAll();
+            }
+        }
+
+        function togglePaidStatus(id) {
+            const member = state.partyMembers.find(m => m.id === id);
+            if (member) {
+                member.isPaid = !member.isPaid;
+                renderPartyMembers();
+                calculateAll();
+            }
+        }
+
+        // Item List Rendering
+        function renderItems() {
+            const list = document.getElementById('itemList');
+            
+            if (state.items.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-xs text-slate-500">등록된 획득 아이템이 없습니다. 버튼을 눌러 추가하세요.</div>`;
+                return;
+            }
+
+            list.innerHTML = state.items.map((item, index) => {
+                const totalGross = (item.price || 0) * (item.qty || 1);
+                const feeAmount = item.applyFee ? Math.floor(totalGross * 0.05) : 0;
+                const netPrice = totalGross - feeAmount;
+
+                return `
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 space-y-3" id="itemCard-${item.id}">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="text-xs font-mono text-slate-500 w-4 text-center">${index + 1}</span>
+                            <input type="text" value="${escapeHtml(item.name)}" oninput="updateItemName(${item.id}, this.value)"
+                                placeholder="아이템명" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <!-- 5% Fee Toggle Button -->
+                        <label class="cursor-pointer flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-1 rounded-lg text-[11px]">
+                            <input type="checkbox" ${item.applyFee ? 'checked' : ''} onchange="updateItemFeeToggle(${item.id}, this.checked)"
+                                class="w-3.5 h-3.5 rounded accent-amber-500 cursor-pointer">
+                            <span class="${item.applyFee ? 'text-amber-400 font-semibold' : 'text-slate-500'}">수수료 5%</span>
+                        </label>
+
+                        <button onclick="removeItemRow(${item.id})" class="text-slate-500 hover:text-rose-400 p-1 transition">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Price & Quantity Breakdown Inputs -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block mb-1">개별 단가</span>
+                            <input type="text" value="${formatNumber(item.price)}" oninput="updateItemPrice(${item.id}, this)"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-right font-mono text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block mb-1">수량</span>
+                            <input type="number" value="${item.qty || 1}" min="1" oninput="updateItemQty(${item.id}, this)"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-center font-mono text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block mb-1">합계 금액 (단가×수량)</span>
+                            <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg px-2 py-1 text-right font-mono text-slate-300 font-semibold truncate gross-display">
+                                ${formatNumber(totalGross)}
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-emerald-400 block mb-1">수수료 후 금액</span>
+                            <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-lg px-2 py-1 text-right font-mono text-emerald-300 font-bold truncate net-display">
+                                ${formatNumber(netPrice)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function addItemRow() {
+            const newId = Date.now();
+            state.items.push({
+                id: newId,
+                name: '새 아이템',
+                price: 0,
+                qty: 1,
+                applyFee: true
+            });
+            renderItems();
+            calculateAll();
+        }
+
+        function removeItemRow(id) {
+            state.items = state.items.filter(i => i.id !== id);
+            renderItems();
+            calculateAll();
+        }
+
+        function updateItemName(id, value) {
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item.name = value;
+            }
+        }
+
+        function formatInputInPlace(inputElement) {
+            const origVal = inputElement.value;
+            const caretPos = inputElement.selectionStart;
+            const digitsBeforeCaret = origVal.substring(0, caretPos).replace(/[^0-9]/g, '').length;
+
+            const numericValue = parseFormattedNumber(origVal);
+            inputElement.value = formatNumber(numericValue);
+
+            let newCaretPos = 0, currentDigits = 0;
+            const formattedVal = inputElement.value;
+            for (let i = 0; i < formattedVal.length; i++) {
+                if (/[0-9]/.test(formattedVal[i])) currentDigits++;
+                if (currentDigits === digitsBeforeCaret) {
+                    newCaretPos = i + 1;
+                    break;
+                }
+            }
+            if (digitsBeforeCaret === 0) newCaretPos = 0;
+            try { inputElement.setSelectionRange(newCaretPos, newCaretPos); } catch (e) {}
+
+            return numericValue;
+        }
+
+        function updateItemPrice(id, inputElement) {
+            const numericValue = formatInputInPlace(inputElement);
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item.price = numericValue;
+                updateSingleRowDisplay(id);
+                calculateAll();
+            }
+        }
+
+        function updateItemQty(id, inputElement) {
+            const qty = Math.max(1, parseInt(inputElement.value) || 1);
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item.qty = qty;
+                updateSingleRowDisplay(id);
+                calculateAll();
+            }
+        }
+
+        function updateItemFeeToggle(id, isChecked) {
+            const item = state.items.find(i => i.id === id);
+            if (item) {
+                item.applyFee = isChecked;
+                updateSingleRowDisplay(id);
+                calculateAll();
+            }
+        }
+
+        function updateSingleRowDisplay(id) {
+            const item = state.items.find(i => i.id === id);
+            if (!item) return;
+            const card = document.getElementById(`itemCard-${id}`);
+            if (!card) return;
+
+            const totalGross = (item.price || 0) * (item.qty || 1);
+            const feeAmount = item.applyFee ? Math.floor(totalGross * 0.05) : 0;
+            const netPrice = totalGross - feeAmount;
+
+            card.querySelector('.gross-display').textContent = formatNumber(totalGross);
+            card.querySelector('.net-display').textContent = formatNumber(netPrice);
+        }
+
+        // Calculation Engine
+        function calculateAll() {
+            const baseMeso = parseFormattedNumber(document.getElementById('baseMesoInput').value);
+            const extraExpense = parseFormattedNumber(document.getElementById('extraExpenseInput').value);
+            const leaderFeePercent = parseFloat(document.getElementById('leaderFeePercent').value) || 0;
+
+            state.baseMeso = baseMeso;
+            state.extraExpense = extraExpense;
+            state.leaderFeePercent = leaderFeePercent;
+
+            // 1. Item Totals & Fee Breakdown
+            let grossItemTotal = 0;
+            let totalItemFee = 0;
+
+            state.items.forEach(item => {
+                const total = (item.price || 0) * (item.qty || 1);
+                const fee = item.applyFee ? Math.floor(total * 0.05) : 0;
+                grossItemTotal += total;
+                totalItemFee += fee;
+            });
+
+            const netItemTotal = grossItemTotal - totalItemFee;
+            const grossIncome = grossItemTotal + baseMeso;
+
+            // 2. Leader & Additional Expenses
+            const leaderFeeAmount = Math.floor(grossIncome * (leaderFeePercent / 100));
+            const totalDeductions = leaderFeeAmount + extraExpense;
+
+            // 3. Final Net Distribution
+            const netDistribution = Math.max(0, netItemTotal + baseMeso - totalDeductions);
+
+            // 4. Per Person Share
+            const partySize = state.partyMembers.length || 1;
+            const perPersonShare = Math.floor(netDistribution / partySize);
+            
+            let sendAmount = 0;
+            let parcelFee = 0;
+            
+            if (perPersonShare > 5000) {
+                sendAmount = Math.floor((perPersonShare - 5000) / 1.05);
+                parcelFee = 5000 + Math.floor(sendAmount * 0.05);
+            }
+
+            // Update Summary Card Elements
+            document.getElementById('summaryGrossItemTotal').textContent = `${formatNumber(grossItemTotal)} 메소`;
+            document.getElementById('summaryTotalItemFee').textContent = `-${formatNumber(totalItemFee)} 메소`;
+            document.getElementById('summaryNetItemTotal').textContent = `${formatNumber(netItemTotal)} 메소`;
+            document.getElementById('summaryBaseMeso').textContent = `${formatNumber(baseMeso)} 메소`;
+            
+            document.getElementById('summaryExtraExpense').textContent = `-${formatNumber(totalDeductions)} 메소`;
+            document.getElementById('summaryNetDistribution').textContent = `${formatNumber(netDistribution)} 메소`;
+            document.getElementById('summaryNetKorean').textContent = `(${toKoreanMeso(netDistribution)})`;
+            document.getElementById('summaryPartySize').textContent = partySize;
+            
+            document.getElementById('summaryPerPersonShare').textContent = `${formatNumber(perPersonShare)} 메소`;
+            document.getElementById('summarySendAmount').textContent = `${formatNumber(sendAmount)} 메소`;
+            document.getElementById('summaryParcelFee').textContent = `${formatNumber(parcelFee)} 메소`;
+
+            // Render Individual Settlement List
+            renderIndividualSettlement(sendAmount, parcelFee, perPersonShare);
+        }
+
+        function renderIndividualSettlement(sendAmount, parcelFee, perPersonShare) {
+            const container = document.getElementById('memberSettlementList');
+
+            container.innerHTML = state.partyMembers.map((member, index) => `
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-slate-500 w-4 text-center">${index + 1}</span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm text-slate-100">${escapeHtml(member.name)}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${member.job}</span>
+                            </div>
+                            <span class="text-[10px] ${member.isPaid ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">
+                                ${member.isPaid ? '✓ 발송 완료' : '미지급'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+                        <span class="text-[10px] text-emerald-400 block font-semibold">택배 입력 금액</span>
+                        <span class="font-mono font-bold text-sm text-emerald-300">
+                            +${formatNumber(sendAmount)} 메소
+                        </span>
+                        <span class="text-[10px] text-slate-400 block">
+                            (택배비 ${formatNumber(parcelFee)} / 총 ${formatNumber(perPersonShare)})
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Export Discord Summary Modal
+        function exportSummaryModal() {
+            const raidTitle = document.getElementById('raidTitle').value || '메이플랜드 보스 레이드';
+            const raidDate = document.getElementById('raidDate').value;
+
+            let grossItemTotal = 0;
+            let totalItemFee = 0;
+
+            state.items.forEach(item => {
+                const total = (item.price || 0) * (item.qty || 1);
+                const fee = item.applyFee ? Math.floor(total * 0.05) : 0;
+                grossItemTotal += total;
+                totalItemFee += fee;
+            });
+
+            const netItemTotal = grossItemTotal - totalItemFee;
+            const grossIncome = grossItemTotal + state.baseMeso;
+            const leaderFeeAmount = Math.floor(grossIncome * (state.leaderFeePercent / 100));
+            const totalDeductions = leaderFeeAmount + state.extraExpense;
+            const netDistribution = Math.max(0, netItemTotal + state.baseMeso - totalDeductions);
+            const partySize = state.partyMembers.length || 1;
+            const perPersonShare = Math.floor(netDistribution / partySize);
+            
+            let sendAmount = 0;
+            let parcelFee = 0;
+            if (perPersonShare > 5000) {
+                sendAmount = Math.floor((perPersonShare - 5000) / 1.05);
+                parcelFee = 5000 + Math.floor(sendAmount * 0.05);
+            }
+
+            let text = `=================================\n`;
+            text += `🍁 [${raidTitle}] 정산 결과 보고\n`;
+            text += `📅 일시: ${raidDate}\n`;
+            text += `=================================\n\n`;
+
+            text += `📦 획득 아이템 목록 (단가 x 수량)\n`;
+            if (state.items.length > 0) {
+                state.items.forEach(item => {
+                    const total = (item.price || 0) * (item.qty || 1);
+                    const net = item.applyFee ? total - Math.floor(total * 0.05) : total;
+                    text += `• ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [수수료후: ${formatNumber(net)}메소]\n`;
+                });
+            } else {
+                text += `• 획득 아이템 없음\n`;
+            }
+
+            if (state.baseMeso > 0) {
+                text += `• 기본 순메소 드롭: ${formatNumber(state.baseMeso)} 메소\n`;
+            }
+
+            text += `\n💵 정산 세부 요약\n`;
+            text += `• 총 판매액 (수수료 전): ${formatNumber(grossItemTotal)} 메소\n`;
+            text += `• 총 수수료 차감액 (5%): -${formatNumber(totalItemFee)} 메소\n`;
+            text += `• 수수료 후 실 수입: ${formatNumber(netItemTotal)} 메소\n`;
+            if (totalDeductions > 0) {
+                text += `• 기타/총대 공제금: -${formatNumber(totalDeductions)} 메소\n`;
+            }
+            text += `• 최종 분배 대상금: ${formatNumber(netDistribution)} 메소 (${toKoreanMeso(netDistribution)})\n`;
+            text += `✨ 1인당 할당 예산 (${partySize}명): ${formatNumber(perPersonShare)} 메소\n`;
+            text += `📦 1인당 택배 금액: ${formatNumber(sendAmount)} 메소 (${toKoreanMeso(sendAmount)}) [수수료 ${formatNumber(parcelFee)}]\n\n`;
+
+            text += `📋 파티원별 택배 발송 안내\n`;
+            state.partyMembers.forEach(m => {
+                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '발송완료 ✓' : '미지급'}]\n`;
+            });
+
+            text += `=================================`;
+
+            document.getElementById('discordTextarea').value = text;
+            document.getElementById('discordModal').classList.remove('hidden');
+        }
+
+        function closeDiscordModal() {
+            document.getElementById('discordModal').classList.add('hidden');
+        }
+
+        function copyDiscordSummary() {
+            const textarea = document.getElementById('discordTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            showToast('정산 요약문이 클립보드에 복사되었습니다!');
+            closeDiscordModal();
+        }
+
+        function resetAllData() {
+            if (confirm('모든 입력 데이터를 초기화하시겠습니까?')) {
+                state = {
+                    partyMembers: [
+                        { id: 1, name: '20준', job: '전사', isPaid: false },
+                        { id: 2, name: '일훈이', job: '도적', isPaid: false },
+                        { id: 3, name: '김다응', job: '마법사', isPaid: false },
+                        { id: 4, name: '묘온', job: '궁수', isPaid: false },
+                        { id: 5, name: 'PETG', job: '해적', isPaid: false },
+                        { id: 6, name: '지예님', job: '전사', isPaid: false }
+                    ],
+                    items: [],
+                    baseMeso: 0,
+                    leaderFeePercent: 0,
+                    extraExpense: 0
+                };
+                document.getElementById('baseMesoInput').value = '0';
+                document.getElementById('extraExpenseInput').value = '0';
+                document.getElementById('leaderFeePercent').value = '0';
+
+                renderPartyMembers();
+                renderItems();
+                calculateAll();
+                showToast('모든 정보가 초기화되었습니다.');
+            }
+        }
+
+        // Utility Helpers
+        function formatNumber(num) {
+            return new Intl.NumberFormat('ko-KR').format(num || 0);
+        }
+
+        function parseFormattedNumber(str) {
+            if (!str) return 0;
+            return parseInt(str.toString().replace(/[^0-9]/g, '')) || 0;
+        }
+
+        function formatAndCalculate(input) {
+            formatInputInPlace(input);
+            calculateAll();
+        }
+
+        function toKoreanMeso(num) {
+            if (!num || num === 0) return '0메소';
+            const eok = Math.floor(num / 100000000);
+            const man = Math.floor((num % 100000000) / 10000);
+            const rest = num % 10000;
+
+            let result = '';
+            if (eok > 0) result += `${eok}억 `;
+            if (man > 0) result += `${man}만 `;
+            if (rest > 0 && eok === 0) result += `${rest}`;
+            return (result.trim() || '0') + '메소';
+        }
+
+        function escapeHtml(string) {
+            return String(string).replace(/[&<>"']/g, function (s) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[s];
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
