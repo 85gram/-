@@ -619,11 +619,13 @@
                                 placeholder="아이템명" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
                         </div>
 
-                        <!-- 5% Fee Toggle Button (수정된 색상 조건부 적용 부분) -->
+                        <!-- 5% Fee Toggle Button (w-16 너비 고정으로 크기/위치 흔들림 방지) -->
                         <label class="cursor-pointer flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-1 rounded-lg text-[11px]">
                             <input type="checkbox" ${item.applyFee ? 'checked' : ''} onchange="updateItemFeeToggle(${item.id}, this.checked)"
                                 class="w-3.5 h-3.5 rounded accent-amber-500 cursor-pointer">
-                            <span class="${item.applyFee ? 'text-amber-400 font-semibold' : 'text-slate-500'}">수수료 5%</span>
+                            <span class="inline-block text-center w-14 ${item.applyFee ? 'text-amber-400 font-semibold' : 'text-slate-500 font-medium'}">
+                                ${item.applyFee ? '수수료 5%' : '상점행'}
+                            </span>
                         </label>
 
                         <button onclick="removeItemRow(${item.id})" class="text-slate-500 hover:text-rose-400 p-1 transition">
@@ -668,7 +670,7 @@
                 name: '새 아이템',
                 price: 0,
                 qty: 1,
-                applyFee: false // <-- 새 아이템 추가 시 수수료 기본 체크 해제 상태(원하시면 true로 변경 가능)
+                applyFee: false
             });
             renderItems();
             saveStateAndCalculate();
@@ -735,7 +737,7 @@
             const item = state.items.find(i => i.id === id);
             if (item) {
                 item.applyFee = isChecked;
-                renderItems(); // 체크 상태 변경 시 회색/노란색 즉시 반영을 위해 다시 렌더링
+                renderItems();
                 saveStateAndCalculate();
             }
         }
@@ -841,6 +843,7 @@
             `).join('');
         }
 
+        // Export Discord Summary Modal
         function exportSummaryModal() {
             const raidTitle = document.getElementById('raidTitle').value || '자쿰 1분대 레이드';
             const raidDate = document.getElementById('raidDate').value;
@@ -879,8 +882,12 @@
             if (state.items.length > 0) {
                 state.items.forEach(item => {
                     const total = (item.price || 0) * (item.qty || 1);
-                    const net = item.applyFee ? total - Math.floor(total * 0.05) : total;
-                    text += `• ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [수수료후: ${formatNumber(net)}메소]\n`;
+                    if (item.applyFee) {
+                        const net = total - Math.floor(total * 0.05);
+                        text += `• ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [수수료후: ${formatNumber(net)}메소]\n`;
+                    } else {
+                        text += `• ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [상점행]\n`;
+                    }
                 });
             } else {
                 text += `• 획득 아이템 없음\n`;
