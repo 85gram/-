@@ -442,7 +442,6 @@
 
         // '기록 불러오기' 버튼을 눌렀을 때 실행되는 수동 로드 함수 (백업본 포함)
         function loadSavedDataManually() {
-            // 먼저 최신 저장본을 불러오고, 없으면 초기화 직전 백업본을 시도
             let saved = localStorage.getItem('maple_calc_state_v2');
             if (!saved) {
                 saved = localStorage.getItem('maple_calc_backup');
@@ -620,7 +619,7 @@
                                 placeholder="아이템명" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
                         </div>
 
-                        <!-- 5% Fee Toggle Button -->
+                        <!-- 5% Fee Toggle Button (수정된 색상 조건부 적용 부분) -->
                         <label class="cursor-pointer flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-1 rounded-lg text-[11px]">
                             <input type="checkbox" ${item.applyFee ? 'checked' : ''} onchange="updateItemFeeToggle(${item.id}, this.checked)"
                                 class="w-3.5 h-3.5 rounded accent-amber-500 cursor-pointer">
@@ -669,7 +668,7 @@
                 name: '새 아이템',
                 price: 0,
                 qty: 1,
-                applyFee: true
+                applyFee: false // <-- 새 아이템 추가 시 수수료 기본 체크 해제 상태(원하시면 true로 변경 가능)
             });
             renderItems();
             saveStateAndCalculate();
@@ -736,7 +735,7 @@
             const item = state.items.find(i => i.id === id);
             if (item) {
                 item.applyFee = isChecked;
-                updateSingleRowDisplay(id);
+                renderItems(); // 체크 상태 변경 시 회색/노란색 즉시 반영을 위해 다시 렌더링
                 saveStateAndCalculate();
             }
         }
@@ -765,7 +764,6 @@
             state.extraExpense = extraExpense;
             state.leaderFeePercent = leaderFeePercent;
 
-            // 1. Item Totals & Fee Breakdown
             let grossItemTotal = 0;
             let totalItemFee = 0;
 
@@ -779,14 +777,11 @@
             const netItemTotal = grossItemTotal - totalItemFee;
             const grossIncome = grossItemTotal + baseMeso;
 
-            // 2. Leader & Additional Expenses
             const leaderFeeAmount = Math.floor(grossIncome * (leaderFeePercent / 100));
             const totalDeductions = leaderFeeAmount + extraExpense;
 
-            // 3. Final Net Distribution
             const netDistribution = Math.max(0, netItemTotal + baseMeso - totalDeductions);
 
-            // 4. Per Person Share
             const partySize = state.partyMembers.length || 1;
             const perPersonShare = Math.floor(netDistribution / partySize);
             
@@ -798,7 +793,6 @@
                 parcelFee = 5000 + Math.floor(sendAmount * 0.05);
             }
 
-            // Update Summary Card Elements
             document.getElementById('summaryGrossItemTotal').textContent = `${formatNumber(grossItemTotal)} 메소`;
             document.getElementById('summaryTotalItemFee').textContent = `-${formatNumber(totalItemFee)} 메소`;
             document.getElementById('summaryNetItemTotal').textContent = `${formatNumber(netItemTotal)} 메소`;
@@ -813,7 +807,6 @@
             document.getElementById('summarySendAmount').textContent = `${formatNumber(sendAmount)} 메소`;
             document.getElementById('summaryParcelFee').textContent = `${formatNumber(parcelFee)} 메소`;
 
-            // Render Individual Settlement List
             renderIndividualSettlement(sendAmount, parcelFee, perPersonShare);
         }
 
@@ -848,7 +841,6 @@
             `).join('');
         }
 
-        // Export Discord Summary Modal
         function exportSummaryModal() {
             const raidTitle = document.getElementById('raidTitle').value || '자쿰 1분대 레이드';
             const raidDate = document.getElementById('raidDate').value;
@@ -932,16 +924,13 @@
             closeDiscordModal();
         }
 
-        // 초기화 시 기존 데이터를 백업(안전장치)하고 초기화
         function resetAllData() {
             if (confirm('모든 입력 데이터를 초기화하시겠습니까?\n(실수로 누르셨다면 상단의 "이전 기록"을 눌러 복구할 수 있습니다.)')) {
-                // 현재 상태를 백업용으로 먼저 저장
                 const currentSaved = localStorage.getItem('maple_calc_state_v2');
                 if (currentSaved) {
                     localStorage.setItem('maple_calc_backup', currentSaved);
                 }
 
-                // 본 저장 데이터는 삭제
                 localStorage.removeItem('maple_calc_state_v2');
 
                 state = {
@@ -968,11 +957,10 @@
                 renderPartyMembers();
                 renderItems();
                 calculateAll();
-                showToast('초기화되었습니다. (실수하셨다면 "기록 불러오기"를 누르세요)');
+                showToast('초기화되었습니다. (실수하셨다면 "이전 기록"을 누르세요)');
             }
         }
 
-        // Utility Helpers
         function formatNumber(num) {
             return new Intl.NumberFormat('ko-KR').format(num || 0);
         }
