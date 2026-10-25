@@ -41,7 +41,6 @@
                 radial-gradient(at 20% 20%, rgba(255, 128, 8, 0.05) 0px, transparent 50%),
                 radial-gradient(at 80% 80%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
         }
-        /* Glassmorphism Effect */
         .glass-panel {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
@@ -54,7 +53,6 @@
             border: 1px solid rgba(245, 158, 11, 0.3);
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -89,8 +87,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <!-- 이전 기록 불러오기 (백업본 포함 복구) -->
-                <button onclick="loadSavedDataManually()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5" title="실수로 초기화했거나 이전 기록을 불러옵니다">
+                <button onclick="loadSavedDataManually()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
                     <i class="fa-solid fa-clock-rotate-left"></i> 이전 기록
                 </button>
                 <button onclick="resetAllData()" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
@@ -109,7 +106,6 @@
         <!-- Boss Selection Bar & Basic Settings -->
         <section class="glass-panel rounded-2xl p-5 border border-slate-800">
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <!-- Boss Preset Buttons -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">보스 선택 (드롭 아이템 프리셋)</label>
                     <div class="flex flex-wrap gap-2" id="bossPresetContainer">
@@ -117,7 +113,6 @@
                     </div>
                 </div>
 
-                <!-- Boss Info Inputs -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:w-1/3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-400 mb-1">레이드 명칭</label>
@@ -183,7 +178,6 @@
                         </button>
                     </div>
 
-                    <!-- Member Input List (2열 배치) -->
                     <div id="partyMemberList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[350px] overflow-y-auto pr-1">
                         <!-- Dynamic Member Rows -->
                     </div>
@@ -191,30 +185,30 @@
 
                 <!-- 3. Expenses & Deductions -->
                 <div class="glass-panel rounded-2xl p-5">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="fa-solid fa-calculator text-amber-400"></i>
-                        <h2 class="font-bold text-slate-100">추가 공제 및 수수료 설정</h2>
+                    <div class="flex items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-amber-400"></i>
+                            <h2 class="font-bold text-slate-100">추가 공제 및 수수료/지급 설정</h2>
+                        </div>
+                        <button onclick="addExpenseRow()" class="px-3 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> 공제 항목 추가
+                        </button>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-3">
                         <!-- Leader Commission -->
-                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
-                            <label class="block text-xs font-semibold text-slate-400 mb-1">판매자 / 기타 수수료 (%)</label>
-                            <div class="flex items-center gap-2">
+                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+                            <span class="text-xs font-semibold text-slate-300">판매자 / 기타 수수료 (%)</span>
+                            <div class="flex items-center gap-2 w-36">
                                 <input type="number" id="leaderFeePercent" value="5" min="0" max="100" step="0.5" oninput="saveStateAndCalculate()"
-                                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500">
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 text-right font-mono">
                                 <span class="text-xs text-slate-400">%</span>
                             </div>
                         </div>
 
-                        <!-- Extra Deductions -->
-                        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800">
-                            <label class="block text-xs font-semibold text-slate-400 mb-1">기타 공제금 (지원금/포션/도핑비 등)</label>
-                            <div class="flex items-center gap-2">
-                                <input type="text" id="extraExpenseInput" value="0" oninput="formatAndCalculate(this)"
-                                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-right font-mono text-sm text-slate-100 focus:outline-none focus:border-amber-500">
-                                <span class="text-xs text-slate-400">메소</span>
-                            </div>
+                        <!-- Dynamic Extra Expense Items Container -->
+                        <div id="expenseList" class="space-y-2.5">
+                            <!-- Dynamic Expense Rows -->
                         </div>
                     </div>
                 </div>
@@ -277,7 +271,7 @@
                         <div class="bg-amber-500/10 p-4 rounded-xl border border-amber-500/40 space-y-2">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <span class="text-xs font-bold text-amber-300 block">1인당 할당 예산(분배금)</span>
+                                    <span class="text-xs font-bold text-amber-300 block">1인당 기본 분배금</span>
                                     <span class="text-[10px] text-slate-400">(N = <span id="summaryPartySize">0</span>명)</span>
                                 </div>
                                 <div class="text-right">
@@ -286,8 +280,8 @@
                             </div>
                             <div class="pt-2 border-t border-amber-500/20 flex justify-between items-center">
                                 <div>
-                                    <span class="text-xs font-bold text-emerald-400 block">택배 입력 금액</span>
-                                    <span class="text-[10px] text-slate-400">(택배 기본요금 - 5,000) ÷ 1.05</span>
+                                    <span class="text-xs font-bold text-emerald-400 block">택배 기본 입력 금액</span>
+                                    <span class="text-[10px] text-slate-400">(기본 분배금 기준)</span>
                                 </div>
                                 <div class="text-right">
                                     <span class="text-lg font-black text-emerald-300 block" id="summarySendAmount">0 메소</span>
@@ -335,7 +329,7 @@
                 </div>
             </div>
 
-            <textarea id="discordTextarea" readonly class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none resize-none mb-4 leading-relaxed"></textarea>
+            <textarea id="discordTextarea" readonly class="w-full h-72 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none resize-none mb-4 leading-relaxed"></textarea>
 
             <div class="flex justify-end gap-2">
                 <button onclick="closeDiscordModal()" class="px-4 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition">닫기</button>
@@ -415,22 +409,23 @@
             items: [
                 { id: 1, name: '아이템을 추가하세요', price: 0, qty: 1, applyFee: true }
             ],
+            expenses: [
+                { id: 1, name: '도핑비', amount: 0, recipientId: 'none' }
+            ],
             baseMeso: 0,
-            leaderFeePercent: 5,
-            extraExpense: 0
+            leaderFeePercent: 5
         };
 
-        // 자동 저장 데이터 불러오기 함수
         function loadSavedState() {
-            const saved = localStorage.getItem('maple_calc_state_v2');
+            const saved = localStorage.getItem('maple_calc_state_v3');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     state = parsed;
+                    if (!state.expenses) state.expenses = [{ id: 1, name: '공제금', amount: state.extraExpense || 0, recipientId: 'none' }];
                     if (state.raidTitle) document.getElementById('raidTitle').value = state.raidTitle;
                     if (state.raidDate) document.getElementById('raidDate').value = state.raidDate;
                     if (state.baseMeso !== undefined) document.getElementById('baseMesoInput').value = formatNumber(state.baseMeso);
-                    if (state.extraExpense !== undefined) document.getElementById('extraExpenseInput').value = formatNumber(state.extraExpense);
                     if (state.leaderFeePercent !== undefined) document.getElementById('leaderFeePercent').value = state.leaderFeePercent;
                     return true;
                 } catch (e) {
@@ -440,25 +435,22 @@
             return false;
         }
 
-        // '기록 불러오기' 버튼을 눌렀을 때 실행되는 수동 로드 함수 (백업본 포함)
         function loadSavedDataManually() {
-            let saved = localStorage.getItem('maple_calc_state_v2');
-            if (!saved) {
-                saved = localStorage.getItem('maple_calc_backup');
-            }
+            let saved = localStorage.getItem('maple_calc_state_v3') || localStorage.getItem('maple_calc_state_v2') || localStorage.getItem('maple_calc_backup');
 
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     state = parsed;
+                    if (!state.expenses) state.expenses = [{ id: 1, name: '공제금', amount: state.extraExpense || 0, recipientId: 'none' }];
                     if (state.raidTitle) document.getElementById('raidTitle').value = state.raidTitle;
                     if (state.raidDate) document.getElementById('raidDate').value = state.raidDate;
                     if (state.baseMeso !== undefined) document.getElementById('baseMesoInput').value = formatNumber(state.baseMeso);
-                    if (state.extraExpense !== undefined) document.getElementById('extraExpenseInput').value = formatNumber(state.extraExpense);
                     if (state.leaderFeePercent !== undefined) document.getElementById('leaderFeePercent').value = state.leaderFeePercent;
 
                     renderPartyMembers();
                     renderItems();
+                    renderExpenses();
                     calculateAll();
                     showToast('이전 정산 기록을 성공적으로 불러왔습니다!');
                     return;
@@ -469,19 +461,16 @@
             showToast('불러올 이전 기록이 없습니다.');
         }
 
-        // 상태 저장 및 계산 실행 함수
         function saveStateAndCalculate() {
             state.raidTitle = document.getElementById('raidTitle').value;
             state.raidDate = document.getElementById('raidDate').value;
             state.baseMeso = parseFormattedNumber(document.getElementById('baseMesoInput').value);
-            state.extraExpense = parseFormattedNumber(document.getElementById('extraExpenseInput').value);
             state.leaderFeePercent = parseFloat(document.getElementById('leaderFeePercent').value) || 0;
 
-            localStorage.setItem('maple_calc_state_v2', JSON.stringify(state));
+            localStorage.setItem('maple_calc_state_v3', JSON.stringify(state));
             calculateAll();
         }
 
-        // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             const loaded = loadSavedState();
             if (!loaded) {
@@ -491,10 +480,10 @@
             renderBossPresets();
             renderPartyMembers();
             renderItems();
+            renderExpenses();
             calculateAll();
         });
 
-        // Render Boss Presets Buttons
         function renderBossPresets() {
             const container = document.getElementById('bossPresetContainer');
             container.innerHTML = BOSS_PRESETS.map(boss => `
@@ -506,7 +495,6 @@
             `).join('');
         }
 
-        // Load Preset Items
         function loadBossPreset(bossId) {
             const boss = BOSS_PRESETS.find(b => b.id === bossId);
             if (!boss) return;
@@ -526,7 +514,6 @@
             showToast(`${boss.name} 프리셋 아이템을 로드했습니다.`);
         }
 
-        // Party Member Functions
         function renderPartyMembers() {
             const list = document.getElementById('partyMemberList');
             document.getElementById('memberCount').textContent = state.partyMembers.length;
@@ -555,6 +542,8 @@
                     </button>
                 </div>
             `).join('');
+
+            renderExpenses();
         }
 
         function addPartyMember() {
@@ -584,6 +573,7 @@
             if (member) {
                 member[field] = value;
                 saveStateAndCalculate();
+                if (field === 'name') renderExpenses();
             }
         }
 
@@ -596,7 +586,7 @@
             }
         }
 
-        // Item List Rendering
+        // Render Item List
         function renderItems() {
             const list = document.getElementById('itemList');
             
@@ -619,7 +609,6 @@
                                 placeholder="아이템명" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
                         </div>
 
-                        <!-- 5% Fee Toggle Button (w-16 너비 고정으로 크기/위치 흔들림 방지) -->
                         <label class="cursor-pointer flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-1 rounded-lg text-[11px]">
                             <input type="checkbox" ${item.applyFee ? 'checked' : ''} onchange="updateItemFeeToggle(${item.id}, this.checked)"
                                 class="w-3.5 h-3.5 rounded accent-amber-500 cursor-pointer">
@@ -633,7 +622,6 @@
                         </button>
                     </div>
 
-                    <!-- Price & Quantity Breakdown Inputs -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                         <div>
                             <span class="text-[10px] text-slate-400 block mb-1">개별 단가</span>
@@ -646,7 +634,7 @@
                                 class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-center font-mono text-slate-200 focus:outline-none focus:border-amber-500">
                         </div>
                         <div>
-                            <span class="text-[10px] text-slate-400 block mb-1">합계 금액 (단가×수량)</span>
+                            <span class="text-[10px] text-slate-400 block mb-1">합계 금액</span>
                             <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg px-2 py-1 text-right font-mono text-slate-300 font-semibold truncate gross-display">
                                 ${formatNumber(totalGross)}
                             </div>
@@ -686,6 +674,88 @@
             const item = state.items.find(i => i.id === id);
             if (item) {
                 item.name = value;
+                saveStateAndCalculate();
+            }
+        }
+
+        // Render Expenses
+        function renderExpenses() {
+            const container = document.getElementById('expenseList');
+            if (!state.expenses) state.expenses = [];
+
+            container.innerHTML = state.expenses.map((exp, index) => `
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+                    <!-- 순번 -->
+                    <span class="text-xs font-mono text-slate-500 w-5 text-center shrink-0">${index + 1}</span>
+
+                    <!-- 공제 항목명 -->
+                    <input type="text" value="${escapeHtml(exp.name)}" oninput="updateExpense(${exp.id}, 'name', this.value)"
+                        placeholder="항목명" 
+                        class="w-28 sm:w-32 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-amber-500 shrink-0">
+
+                    <!-- 구분자 -->
+                    <div class="hidden sm:block h-5 w-[1px] bg-slate-700/60 mx-0.5 shrink-0"></div>
+
+                    <!-- 금액 입력 + '메소' -->
+                    <div class="flex items-center gap-1.5 flex-1 min-w-[140px]">
+                        <input type="text" value="${formatNumber(exp.amount)}" oninput="updateExpenseAmount(${exp.id}, this)"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-right font-mono text-xs text-amber-300 font-bold focus:outline-none focus:border-amber-500" placeholder="금액">
+                        <span class="text-xs text-slate-400 shrink-0">메소</span>
+                    </div>
+
+                    <!-- 구분자 -->
+                    <div class="hidden sm:block h-5 w-[1px] bg-slate-700/60 mx-0.5 shrink-0"></div>
+
+                    <!-- 수령인 선택 -->
+                    <div class="w-full sm:w-36 shrink-0">
+                        <select onchange="updateExpense(${exp.id}, 'recipientId', this.value)" 
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 truncate">
+                            <option value="none" ${exp.recipientId === 'none' ? 'selected' : ''}>수령인 선택</option>
+                            ${state.partyMembers.map(m => `
+                                <option value="${m.id}" ${exp.recipientId == m.id ? 'selected' : ''}>👉 ${escapeHtml(m.name)} 지급</option>
+                            `).join('')}
+                        </select>
+                    </div>
+
+                    <!-- 삭제 버튼 -->
+                    <button onclick="removeExpenseRow(${exp.id})" class="text-slate-500 hover:text-rose-400 p-1.5 transition shrink-0 ml-auto sm:ml-0">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addExpenseRow() {
+            const newId = Date.now();
+            state.expenses.push({
+                id: newId,
+                name: '도핑비',
+                amount: 0,
+                recipientId: 'none'
+            });
+            renderExpenses();
+            saveStateAndCalculate();
+        }
+
+        function removeExpenseRow(id) {
+            state.expenses = state.expenses.filter(e => e.id !== id);
+            renderExpenses();
+            saveStateAndCalculate();
+        }
+
+        function updateExpense(id, field, value) {
+            const exp = state.expenses.find(e => e.id === id);
+            if (exp) {
+                exp[field] = value;
+                saveStateAndCalculate();
+            }
+        }
+
+        function updateExpenseAmount(id, inputElement) {
+            const numericValue = formatInputInPlace(inputElement);
+            const exp = state.expenses.find(e => e.id === id);
+            if (exp) {
+                exp.amount = numericValue;
                 saveStateAndCalculate();
             }
         }
@@ -759,11 +829,9 @@
         // Calculation Engine
         function calculateAll() {
             const baseMeso = parseFormattedNumber(document.getElementById('baseMesoInput').value);
-            const extraExpense = parseFormattedNumber(document.getElementById('extraExpenseInput').value);
             const leaderFeePercent = parseFloat(document.getElementById('leaderFeePercent').value) || 0;
 
             state.baseMeso = baseMeso;
-            state.extraExpense = extraExpense;
             state.leaderFeePercent = leaderFeePercent;
 
             let grossItemTotal = 0;
@@ -780,19 +848,20 @@
             const grossIncome = grossItemTotal + baseMeso;
 
             const leaderFeeAmount = Math.floor(grossIncome * (leaderFeePercent / 100));
-            const totalDeductions = leaderFeeAmount + extraExpense;
+            const totalExtraExpenses = state.expenses ? state.expenses.reduce((sum, e) => sum + (e.amount || 0), 0) : 0;
+            const totalDeductions = leaderFeeAmount + totalExtraExpenses;
 
             const netDistribution = Math.max(0, netItemTotal + baseMeso - totalDeductions);
 
             const partySize = state.partyMembers.length || 1;
             const perPersonShare = Math.floor(netDistribution / partySize);
             
-            let sendAmount = 0;
-            let parcelFee = 0;
+            let defaultSendAmount = 0;
+            let defaultParcelFee = 0;
             
             if (perPersonShare > 5000) {
-                sendAmount = Math.floor((perPersonShare - 5000) / 1.05);
-                parcelFee = 5000 + Math.floor(sendAmount * 0.05);
+                defaultSendAmount = Math.floor((perPersonShare - 5000) / 1.05);
+                defaultParcelFee = 5000 + Math.floor(defaultSendAmount * 0.05);
             }
 
             document.getElementById('summaryGrossItemTotal').textContent = `${formatNumber(grossItemTotal)} 메소`;
@@ -806,16 +875,38 @@
             document.getElementById('summaryPartySize').textContent = partySize;
             
             document.getElementById('summaryPerPersonShare').textContent = `${formatNumber(perPersonShare)} 메소`;
-            document.getElementById('summarySendAmount').textContent = `${formatNumber(sendAmount)} 메소`;
-            document.getElementById('summaryParcelFee').textContent = `${formatNumber(parcelFee)} 메소`;
+            document.getElementById('summarySendAmount').textContent = `${formatNumber(defaultSendAmount)} 메소`;
+            document.getElementById('summaryParcelFee').textContent = `${formatNumber(defaultParcelFee)} 메소`;
 
-            renderIndividualSettlement(sendAmount, parcelFee, perPersonShare);
+            renderIndividualSettlement(perPersonShare);
         }
 
-        function renderIndividualSettlement(sendAmount, parcelFee, perPersonShare) {
+        function renderIndividualSettlement(perPersonShare) {
             const container = document.getElementById('memberSettlementList');
 
-            container.innerHTML = state.partyMembers.map((member, index) => `
+            container.innerHTML = state.partyMembers.map((member, index) => {
+                let memberExtraBonus = 0;
+                let bonusLabels = [];
+
+                if (state.expenses) {
+                    state.expenses.forEach(exp => {
+                        if (exp.recipientId == member.id && exp.amount > 0) {
+                            memberExtraBonus += exp.amount;
+                            bonusLabels.push(`${exp.name} +`);
+                        }
+                    });
+                }
+
+                const totalMemberTarget = perPersonShare + memberExtraBonus;
+                let memberSendAmount = 0;
+                let memberParcelFee = 0;
+
+                if (totalMemberTarget > 5000) {
+                    memberSendAmount = Math.floor((totalMemberTarget - 5000) / 1.05);
+                    memberParcelFee = 5000 + Math.floor(memberSendAmount * 0.05);
+                }
+
+                return `
                 <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-mono text-slate-500 w-4 text-center">${index + 1}</span>
@@ -824,28 +915,32 @@
                                 <span class="font-bold text-sm text-slate-100">${escapeHtml(member.name)}</span>
                                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">${member.job}</span>
                             </div>
-                            <span class="text-[10px] ${member.isPaid ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">
-                                ${member.isPaid ? '✓ 지급 완료' : '미지급'}
-                            </span>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] ${member.isPaid ? 'text-emerald-400 font-semibold' : 'text-slate-400'}">
+                                    ${member.isPaid ? '✓ 지급 완료' : '미지급'}
+                                </span>
+                                ${memberExtraBonus > 0 ? `<span class="text-[10px] text-amber-400 font-medium bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">${bonusLabels.join(', ')} 총 ${formatNumber(totalMemberTarget)}</span>` : ''}
+                            </div>
                         </div>
                     </div>
 
                     <div class="text-right">
                         <span class="text-[10px] text-emerald-400 block font-semibold">택배 입력 금액</span>
                         <span class="font-mono font-bold text-sm text-emerald-300">
-                            +${formatNumber(sendAmount)} 메소
+                            +${formatNumber(memberSendAmount)} 메소
                         </span>
                         <span class="text-[10px] text-slate-400 block">
-                            (택배비 ${formatNumber(parcelFee)} / 총 ${formatNumber(perPersonShare)})
+                            (택배비 ${formatNumber(memberParcelFee)} / 총 ${formatNumber(totalMemberTarget)})
                         </span>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
-        // Export Discord Summary Modal
+        // Export Discord Summary Modal (항목명 + 형태 반영 완료)
         function exportSummaryModal() {
-            const raidTitle = document.getElementById('raidTitle').value || '자쿰 1분대 레이드';
+            const raidTitle = document.getElementById('raidTitle').value || '자쿰 분배 정산';
             const raidDate = document.getElementById('raidDate').value;
 
             let grossItemTotal = 0;
@@ -861,16 +956,18 @@
             const netItemTotal = grossItemTotal - totalItemFee;
             const grossIncome = grossItemTotal + state.baseMeso;
             const leaderFeeAmount = Math.floor(grossIncome * (state.leaderFeePercent / 100));
-            const totalDeductions = leaderFeeAmount + state.extraExpense;
+            const totalExtraExpenses = state.expenses ? state.expenses.reduce((sum, e) => sum + (e.amount || 0), 0) : 0;
+            const totalDeductions = leaderFeeAmount + totalExtraExpenses;
+            
             const netDistribution = Math.max(0, netItemTotal + state.baseMeso - totalDeductions);
             const partySize = state.partyMembers.length || 1;
             const perPersonShare = Math.floor(netDistribution / partySize);
-            
-            let sendAmount = 0;
-            let parcelFee = 0;
+
+            let defaultSendAmount = 0;
+            let defaultParcelFee = 0;
             if (perPersonShare > 5000) {
-                sendAmount = Math.floor((perPersonShare - 5000) / 1.05);
-                parcelFee = 5000 + Math.floor(sendAmount * 0.05);
+                defaultSendAmount = Math.floor((perPersonShare - 5000) / 1.05);
+                defaultParcelFee = 5000 + Math.floor(defaultSendAmount * 0.05);
             }
 
             let text = `=================================\n`;
@@ -884,33 +981,66 @@
                     const total = (item.price || 0) * (item.qty || 1);
                     if (item.applyFee) {
                         const net = total - Math.floor(total * 0.05);
-                        text += `• ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [수수료후: ${formatNumber(net)}메소]\n`;
+                        text += `- ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [수수료후: ${formatNumber(net)}메소]\n`;
                     } else {
-                        text += `• ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [상점행]\n`;
+                        text += `- ${item.name} (${formatNumber(item.price)}메소 x ${item.qty || 1}개) = ${formatNumber(total)}메소 [상점행]\n`;
                     }
                 });
             } else {
-                text += `• 획득 아이템 없음\n`;
+                text += `- 획득 아이템 없음\n`;
             }
 
             if (state.baseMeso > 0) {
-                text += `• 기본 순메소 드롭: ${formatNumber(state.baseMeso)} 메소\n`;
+                text += `- 기본 순메소 드롭: ${formatNumber(state.baseMeso)} 메소\n`;
             }
 
             text += `\n💵 정산 세부 요약\n`;
-            text += `• 총 판매액 (수수료 전): ${formatNumber(grossItemTotal)} 메소\n`;
-            text += `• 총 수수료 차감액 (5%): -${formatNumber(totalItemFee)} 메소\n`;
-            text += `• 수수료 후 실 수입: ${formatNumber(netItemTotal)} 메소\n`;
+            text += `- 총 판매액 (수수료 전): ${formatNumber(grossItemTotal)} 메소\n`;
+            text += `- 총 수수료 차감액 (5%): -${formatNumber(totalItemFee)} 메소\n`;
+            text += `- 수수료 후 실 수입: ${formatNumber(netItemTotal)} 메소\n`;
+            
             if (totalDeductions > 0) {
-                text += `• 기타/판매자 공제금: -${formatNumber(totalDeductions)} 메소\n`;
+                text += `- 기타/판매자 공제금: -${formatNumber(totalDeductions)} 메소\n`;
+                if (state.expenses && state.expenses.length > 0) {
+                    state.expenses.forEach(exp => {
+                        if (exp.amount > 0) {
+                            const recipient = state.partyMembers.find(m => m.id == exp.recipientId);
+                            const recName = recipient ? ` ➔ ${recipient.name}` : '';
+                            text += `   └ ${exp.name}: ${formatNumber(exp.amount)} 메소${recName}\n`;
+                        }
+                    });
+                }
             }
-            text += `• 최종 분배 대상금: ${formatNumber(netDistribution)} 메소 (${toKoreanMeso(netDistribution)})\n`;
+            
+            text += `- 최종 분배 대상금: ${formatNumber(netDistribution)} 메소 (${toKoreanMeso(netDistribution)})\n`;
             text += `✨ 1인당 할당 예산 (${partySize}명): ${formatNumber(perPersonShare)} 메소\n`;
-            text += `📦 1인당 택배 금액: ${formatNumber(sendAmount)} 메소 (${toKoreanMeso(sendAmount)}) [수수료 ${formatNumber(parcelFee)}]\n\n`;
+            text += `📦 1인당 택배 금액: ${formatNumber(defaultSendAmount)} 메소 (${toKoreanMeso(defaultSendAmount)}) [수수료 ${formatNumber(defaultParcelFee)}]\n\n`;
 
             text += `📋 파티원별 택배 발송 안내\n`;
             state.partyMembers.forEach(m => {
-                text += `• ${m.name} (${m.job}): ${formatNumber(sendAmount)} 메소 [${m.isPaid ? '지급완료 ✓' : '미지급'}]\n`;
+                let memberExtraBonus = 0;
+                let bonusDetails = [];
+
+                if (state.expenses) {
+                    state.expenses.forEach(exp => {
+                        if (exp.recipientId == m.id && exp.amount > 0) {
+                            memberExtraBonus += exp.amount;
+                            bonusDetails.push(`${exp.name} +`);
+                        }
+                    });
+                }
+
+                const totalTarget = perPersonShare + memberExtraBonus;
+                let sendAmt = 0;
+                if (totalTarget > 5000) sendAmt = Math.floor((totalTarget - 5000) / 1.05);
+
+                const paidStatus = m.isPaid ? '지급완료 ✓' : '미지급';
+
+                text += `- ${m.name} (${m.job}): ${formatNumber(sendAmt)} 메소 [${paidStatus}]\n`;
+                
+                if (bonusDetails.length > 0) {
+                    text += `   └ (${bonusDetails.join(', ')} · 총 ${formatNumber(totalTarget)}메소 / 택배 ${formatNumber(sendAmt)})\n`;
+                }
             });
 
             text += `=================================`;
@@ -933,12 +1063,12 @@
 
         function resetAllData() {
             if (confirm('모든 입력 데이터를 초기화하시겠습니까?\n(실수로 누르셨다면 상단의 "이전 기록"을 눌러 복구할 수 있습니다.)')) {
-                const currentSaved = localStorage.getItem('maple_calc_state_v2');
+                const currentSaved = localStorage.getItem('maple_calc_state_v3');
                 if (currentSaved) {
                     localStorage.setItem('maple_calc_backup', currentSaved);
                 }
 
-                localStorage.removeItem('maple_calc_state_v2');
+                localStorage.removeItem('maple_calc_state_v3');
 
                 state = {
                     partyMembers: [
@@ -950,12 +1080,13 @@
                         { id: 6, name: 'PETG', job: '직업', isPaid: false }
                     ],
                     items: [],
+                    expenses: [
+                        { id: 1, name: '도핑비', amount: 0, recipientId: 'none' }
+                    ],
                     baseMeso: 0,
-                    leaderFeePercent: 5,
-                    extraExpense: 0
+                    leaderFeePercent: 5
                 };
                 document.getElementById('baseMesoInput').value = '0';
-                document.getElementById('extraExpenseInput').value = '0';
                 document.getElementById('leaderFeePercent').value = '5';
                 
                 const today = new Date();
@@ -963,6 +1094,7 @@
 
                 renderPartyMembers();
                 renderItems();
+                renderExpenses();
                 calculateAll();
                 showToast('초기화되었습니다. (실수하셨다면 "이전 기록"을 누르세요)');
             }
