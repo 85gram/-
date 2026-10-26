@@ -774,6 +774,15 @@
         }
 
         function updateExpenseAmount(id, inputElement) {
+            if (inputElement.value.trim() === '') {
+                const exp = state.expenses.find(e => e.id === id);
+                if (exp) {
+                    exp.amount = 0;
+                    saveStateAndCalculate();
+                }
+                return;
+            }
+
             const numericValue = formatInputInPlace(inputElement);
             const exp = state.expenses.find(e => e.id === id);
             if (exp) {
@@ -837,6 +846,17 @@
         }
 
         function updateItemPrice(id, inputElement) {
+            // 텍스트를 모두 지운 상태(빈 값)일 경우 처리
+            if (inputElement.value.trim() === '') {
+                const item = state.items.find(i => i.id === id);
+                if (item) {
+                    item.price = 0;
+                    updateSingleRowDisplay(id);
+                    saveStateAndCalculate();
+                }
+                return;
+            }
+
             const numericValue = formatInputInPlace(inputElement);
             const item = state.items.find(i => i.id === id);
             if (item) {
